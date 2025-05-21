@@ -1,0 +1,48 @@
+{
+  "name": "mcp-server",
+  "version": "1.0.0",
+  "description": "Local MCP Server for prompt management",
+  "main": "build/app.js",
+  "type": "module",
+  "bin": {
+    "mcp-server": "./build/app.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod 755 build/mcp-basic.js && chmod 755 build/app.js",
+    "start": "node build/app.js",
+    "dev": "nodemon --exec ts-node src/app.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "build"
+  ],
+  "keywords": [
+    "prompt",
+    "ai",
+    "claude",
+    "mcp"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.51.0",
+    "@modelcontextprotocol/sdk": "^1.11.4",
+    "dotenv": "^16.5.0",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "node-fetch": "^3.3.2",
+    "undici": "^7.10.0",
+    "undici-types": "^7.10.0",
+    "uuid": "^9.0.1",
+    "web-streams-polyfill": "^4.1.0",
+    "zod": "^3.25.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.19",
+    "@types/uuid": "^10.0.0",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}

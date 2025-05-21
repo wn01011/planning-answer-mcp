@@ -1,0 +1,238 @@
+<%- include('partials/header') %>
+
+<div class="container">
+  <div class="row mb-4">
+    <div class="col">
+      <h1><%= prompt.title %></h1>
+      <% if (prompt.tags && prompt.tags.length > 0) { %>
+        <div class="mb-2">
+          <% prompt.tags.forEach(function(tag) { %>
+            <span class="badge bg-secondary me-1"><%= tag %></span>
+          <% }); %>
+        </div>
+      <% } %>
+      <p class="text-muted">
+        작성일: <%= new Date(prompt.created_at).toLocaleString() %>
+        <% if (prompt.updated_at) { %>
+          | 수정일: <%= new Date(prompt.updated_at).toLocaleString() %>
+        <% } %>
+      </p>
+      <div class="btn-group mb-3">
+        <a href="/" class="btn btn-outline-secondary">← 목록으로</a>
+        <a href="/prompts/<%= prompt.id %>/edit" class="btn btn-outline-primary">편집</a>
+        <button id="copyBtn" class="btn btn-outline-success">프롬프트 복사</button>
+        <button id="applyToClaudeBtn" class="btn btn-outline-info">Claude에 적용</button>
+        <button id="deleteBtn" class="btn btn-outline-danger">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">프롬프트 내용</h5>
+        </div>
+        <div class="card-body">
+          <pre id="promptContent" class="p-3 bg-light"><%= prompt.content %></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Claude API 응답 표시 영역 -->
+  <div class="row mt-4" id="claudeResponseContainer" style="display: none;">
+    <div class="col">
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Claude 응답</h5>
+            <button id="copyResponseBtn" class="btn btn-sm btn-light">응답 복사</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="apiResponseLoading" class="text-center py-5" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">로딩중...</span>
+            </div>
+            <p class="mt-3">Claude API에 요청을 보내는 중...</p>
+          </div>
+          <div id="apiResponseError" class="alert alert-danger" style="display: none;"></div>
+          <pre id="claudeResponseContent" class="p-3 bg-light"></pre>
+          <div id="apiResponseMetadata" class="text-muted small mt-2" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 복사 버튼 기능
+    const copyBtn = document.getElementById('copyBtn');
+    const promptContent = document.getElementById('promptContent');
+    
+    copyBtn.addEventListener('click', function() {
+      navigator.clipboard.writeText(promptContent.textContent)
+        .then(() => {
+          copyBtn.textContent = '복사됨!';
+          copyBtn.classList.remove('btn-outline-success');
+          copyBtn.classList.add('btn-success');
+          
+          setTimeout(() => {
+            copyBtn.textContent = '프롬프트 복사';
+            copyBtn.classList.remove('btn-success');
+            copyBtn.classList.add('btn-outline-success');
+          }, 2000);
+        })
+        .catch(err => {
+          console.error('클립보드 복사 실패:', err);
+          alert('프롬프트 복사에 실패했습니다. 수동으로 복사해주세요.');
+        });
+    });
+    
+    // Claude에 적용 버튼 기능
+    const applyToClaudeBtn = document.getElementById('applyToClaudeBtn');
+    const claudeResponseContainer = document.getElementById('claudeResponseContainer');
+    const claudeResponseContent = document.getElementById('claudeResponseContent');
+    const apiResponseMetadata = document.getElementById('apiResponseMetadata');
+    const apiResponseLoading = document.getElementById('apiResponseLoading');
+    const apiResponseError = document.getElementById('apiResponseError');
+    const copyResponseBtn = document.getElementById('copyResponseBtn');
+    
+    applyToClaudeBtn.addEventListener('click', function() {
+      // 버튼 상태 변경
+      applyToClaudeBtn.textContent = '적용 중...';
+      applyToClaudeBtn.disabled = true;
+      
+      // 로딩 표시
+      claudeResponseContainer.style.display = 'block';
+      apiResponseLoading.style.display = 'block';
+      claudeResponseContent.style.display = 'none';
+      apiResponseMetadata.style.display = 'none';
+      apiResponseError.style.display = 'none';
+      
+      // 스크롤 이동
+      claudeResponseContainer.scrollIntoView({ behavior: 'smooth' });
+      
+      // API 엔드포인트 호출 시도
+      fetch('/api/prompts/<%= prompt.id %>/apply-to-claude', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      })
+      .then(response => response.json())
+      .then(data => {
+        // 로딩 영역 숨김
+        apiResponseLoading.style.display = 'none';
+        
+        if (data.success) {
+          // 성공적으로 API 호출한 경우
+          claudeResponseContent.innerText = data.response.message;
+          claudeResponseContent.style.display = 'block';
+          
+          // 메타데이터 표시
+          if (data.response.model || data.response.usage) {
+            let metadataText = '';
+            if (data.response.model) {
+              metadataText += `모델: ${data.response.model} `;
+            }
+            if (data.response.usage) {
+              metadataText += `| 토큰: ${data.response.usage.input_tokens + data.response.usage.output_tokens}`;
+            }
+            apiResponseMetadata.innerText = metadataText;
+            apiResponseMetadata.style.display = 'block';
+          }
+          
+          // 버튼 상태 복원
+          applyToClaudeBtn.textContent = 'Claude에 적용';
+          applyToClaudeBtn.disabled = false;
+        } else if (data.needApiKey) {
+          // API 키가 필요한 경우
+          apiResponseError.innerText = data.message || 'Claude API 키가 설정되지 않았습니다. 설정 페이지에서 API 키를 설정해주세요.';
+          apiResponseError.style.display = 'block';
+          apiResponseError.innerHTML += '<br><a href="/settings" class="btn btn-primary mt-2">설정 페이지로 이동</a>';
+          
+          // 버튼 상태 복원
+          applyToClaudeBtn.textContent = 'Claude에 적용';
+          applyToClaudeBtn.disabled = false;
+        } else {
+          // 오류가 발생한 경우
+          apiResponseError.innerText = data.message || data.error || '알 수 없는 오류가 발생했습니다.';
+          apiResponseError.style.display = 'block';
+          
+          // 대체 방법 제공 (웹사이트 열기)
+          if (data.fallback && data.fallback.redirectUrl) {
+            // 클립보드에 복사
+            navigator.clipboard.writeText(promptContent.textContent)
+              .then(() => {
+                apiResponseError.innerHTML += '<br><p>프롬프트가 클립보드에 복사되었습니다.</p>';
+                apiResponseError.innerHTML += `<br><a href="${data.fallback.redirectUrl}" class="btn btn-primary mt-2" target="_blank">Claude 웹사이트에서 직접 실행하기</a>`;
+              });
+          }
+          
+          // 버튼 상태 복원
+          applyToClaudeBtn.textContent = 'Claude에 적용';
+          applyToClaudeBtn.disabled = false;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        
+        // 로딩 영역 숨김
+        apiResponseLoading.style.display = 'none';
+        
+        // 오류 표시
+        apiResponseError.innerText = 'Claude API 호출 중 오류가 발생했습니다.';
+        apiResponseError.style.display = 'block';
+        
+        // 버튼 상태 복원
+        applyToClaudeBtn.disabled = false;
+        applyToClaudeBtn.textContent = 'Claude에 적용';
+      });
+    });
+    
+    // 응답 복사 버튼 기능
+    copyResponseBtn.addEventListener('click', function() {
+      navigator.clipboard.writeText(claudeResponseContent.textContent)
+        .then(() => {
+          copyResponseBtn.textContent = '복사됨!';
+          setTimeout(() => {
+            copyResponseBtn.textContent = '응답 복사';
+          }, 2000);
+        })
+        .catch(err => {
+          console.error('클립보드 복사 실패:', err);
+          alert('응답 복사에 실패했습니다. 수동으로 복사해주세요.');
+        });
+    });
+    
+    // 삭제 버튼 기능
+    const deleteBtn = document.getElementById('deleteBtn');
+    
+    deleteBtn.addEventListener('click', function() {
+      if (confirm('정말로 이 프롬프트를 삭제하시겠습니까?')) {
+        fetch('/api/prompts/<%= prompt.id %>', {
+          method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('프롬프트가 성공적으로 삭제되었습니다!');
+            window.location.href = '/';
+          } else {
+            alert('오류: ' + (data.error || '알 수 없는 오류가 발생했습니다.'));
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('프롬프트 삭제 중 오류가 발생했습니다.');
+        });
+      }
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>

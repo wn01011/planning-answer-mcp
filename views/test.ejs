@@ -1,0 +1,195 @@
+<%- include('partials/header') %>
+
+<div class="container">
+  <div class="row mb-4">
+    <div class="col">
+      <h1>Claude API 직접 테스트</h1>
+      <p class="lead">Claude API를 직접 호출하여 프롬프트를 테스트합니다.</p>
+      <a href="/" class="btn btn-outline-secondary">← 홈으로 돌아가기</a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">테스트 프롬프트</h5>
+        </div>
+        <div class="card-body">
+          <form id="testApiForm">
+            <div class="mb-3">
+              <label for="prompt" class="form-label">프롬프트 내용</label>
+              <textarea class="form-control" id="prompt" rows="6" placeholder="테스트할 프롬프트를 입력하세요..."></textarea>
+            </div>
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary" id="testBtn">API 테스트</button>
+            </div>
+          </form>
+          
+          <div class="mt-3">
+            <h6>예제 프롬프트:</h6>
+            <div class="list-group">
+              <button class="list-group-item list-group-item-action example-prompt">안녕하세요! 오늘 날씨 어때요?</button>
+              <button class="list-group-item list-group-item-action example-prompt">짧은 시를 써줄 수 있나요?</button>
+              <button class="list-group-item list-group-item-action example-prompt">Python으로 간단한 웹 스크래퍼를 만드는 코드를 작성해주세요.</button>
+              <button class="list-group-item list-group-item-action example-prompt">인공지능의 윤리적 문제에 대해 설명해주세요.</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header bg-info text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">API 응답</h5>
+            <button id="copyResponseBtn" class="btn btn-sm btn-light" style="display: none;">응답 복사</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="apiResponseLoading" class="text-center py-5" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">로딩중...</span>
+            </div>
+            <p class="mt-3">Claude API에 요청을 보내는 중...</p>
+          </div>
+          <div id="apiResponseError" class="alert alert-danger" style="display: none;"></div>
+          <pre id="apiResponseContent" class="p-3 bg-light" style="display: none;"></pre>
+          <div id="apiResponseMetadata" class="text-muted small mt-2" style="display: none;"></div>
+          
+          <div class="text-center py-5" id="initialMessage">
+            <i class="bi bi-arrow-left-circle" style="font-size: 2rem;"></i>
+            <p class="mt-3">왼쪽에 프롬프트를 입력하고 API 테스트 버튼을 클릭하세요.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const testApiForm = document.getElementById('testApiForm');
+    const promptInput = document.getElementById('prompt');
+    const testBtn = document.getElementById('testBtn');
+    const apiResponseLoading = document.getElementById('apiResponseLoading');
+    const apiResponseError = document.getElementById('apiResponseError');
+    const apiResponseContent = document.getElementById('apiResponseContent');
+    const apiResponseMetadata = document.getElementById('apiResponseMetadata');
+    const initialMessage = document.getElementById('initialMessage');
+    const copyResponseBtn = document.getElementById('copyResponseBtn');
+    const examplePromptBtns = document.querySelectorAll('.example-prompt');
+    
+    // 예제 프롬프트 클릭 처리
+    examplePromptBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        promptInput.value = this.textContent;
+        promptInput.focus();
+      });
+    });
+    
+    // API 테스트 폼 제출 처리
+    testApiForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const prompt = promptInput.value.trim();
+      
+      if (!prompt) {
+        alert('프롬프트를 입력해주세요.');
+        return;
+      }
+      
+      // 로딩 상태 표시
+      testBtn.textContent = '테스트 중...';
+      testBtn.disabled = true;
+      
+      initialMessage.style.display = 'none';
+      apiResponseLoading.style.display = 'block';
+      apiResponseError.style.display = 'none';
+      apiResponseContent.style.display = 'none';
+      apiResponseMetadata.style.display = 'none';
+      copyResponseBtn.style.display = 'none';
+      
+      // API 호출
+      fetch('/api/test-direct-api', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          prompt: prompt
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // 로딩 상태 숨김
+        apiResponseLoading.style.display = 'none';
+        
+        if (data.success) {
+          // 성공적인 응답 표시
+          apiResponseContent.innerText = data.response.message;
+          apiResponseContent.style.display = 'block';
+          copyResponseBtn.style.display = 'block';
+          
+          // 메타데이터 표시
+          if (data.response.model || data.response.usage) {
+            let metadataText = '';
+            if (data.response.model) {
+              metadataText += `모델: ${data.response.model} `;
+            }
+            if (data.response.usage) {
+              metadataText += `| 토큰: ${data.response.usage.input_tokens + data.response.usage.output_tokens}`;
+            }
+            apiResponseMetadata.innerText = metadataText;
+            apiResponseMetadata.style.display = 'block';
+          }
+        } else {
+          // 오류 응답 표시
+          apiResponseError.innerText = data.message || data.error || '알 수 없는 오류가 발생했습니다.';
+          
+          if (data.details) {
+            apiResponseError.innerHTML += `<hr><pre class="mt-2 text-break">${data.details}</pre>`;
+          }
+          
+          apiResponseError.style.display = 'block';
+        }
+        
+        // 버튼 상태 복원
+        testBtn.textContent = 'API 테스트';
+        testBtn.disabled = false;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        
+        // 로딩 상태 숨김
+        apiResponseLoading.style.display = 'none';
+        
+        // 오류 표시
+        apiResponseError.innerText = '서버 오류가 발생했습니다.';
+        apiResponseError.style.display = 'block';
+        
+        // 버튼 상태 복원
+        testBtn.textContent = 'API 테스트';
+        testBtn.disabled = false;
+      });
+    });
+    
+    // 응답 복사 버튼 기능
+    copyResponseBtn.addEventListener('click', function() {
+      navigator.clipboard.writeText(apiResponseContent.textContent)
+        .then(() => {
+          copyResponseBtn.textContent = '복사됨!';
+          setTimeout(() => {
+            copyResponseBtn.textContent = '응답 복사';
+          }, 2000);
+        })
+        .catch(err => {
+          console.error('클립보드 복사 실패:', err);
+          alert('응답 복사에 실패했습니다. 수동으로 복사해주세요.');
+        });
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>

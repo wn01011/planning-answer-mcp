@@ -1,0 +1,9 @@
+2025-05-20T13:41:13.549Z [my-mcp-server] [info] Minimal MCP server listening on port 3002
+2025-05-20T13:45:52.244Z [my-mcp-server] [info] Shutting down server...
+2025-05-20T13:45:52.246Z [my-mcp-server] [info] Server closed
+2025-05-20T13:45:53.674Z [my-mcp-server] [info] MCP basic server started
+2025-05-20T13:45:53.677Z [my-mcp-server] [info] MCP server listening on port 3002
+2025-05-20T13:48:20.262Z [my-mcp-server] [info] Shutting down server...
+2025-05-20T13:48:20.266Z [my-mcp-server] [info] Server stopped
+2025-05-20T13:48:20.382Z [my-mcp-server] [info] Shutting down server...
+2025-05-20T13:48:20.384Z [my-mcp-server] [info] Server stopped

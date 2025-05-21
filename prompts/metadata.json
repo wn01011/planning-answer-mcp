@@ -1,0 +1,35 @@
+{
+  "prompts": [
+    {
+      "id": "9dd6fd29-94d0-42df-b04d-a175a3ae5a83",
+      "title": "스페인어",
+      "file": "/Users/naron/Desktop/mcp-server/prompts/9dd6fd29-94d0-42df-b04d-a175a3ae5a83.txt",
+      "tags": [
+        "claude"
+      ],
+      "created_at": "2025-05-20T04:28:56.129Z"
+    },
+    {
+      "id": "35165530-ad5d-44c4-8286-acc137a4e582",
+      "title": "프랑스어",
+      "file": "/Users/naron/Desktop/mcp-server/prompts/35165530-ad5d-44c4-8286-acc137a4e582.txt",
+      "tags": [],
+      "created_at": "2025-05-21T07:19:51.812Z"
+    },
+    {
+      "id": "1c2daaa9-b32a-4d5d-a8fd-e409e404cba2",
+      "title": "표로 만들어",
+      "file": "/Users/naron/Desktop/mcp-server/prompts/1c2daaa9-b32a-4d5d-a8fd-e409e404cba2.txt",
+      "tags": [],
+      "created_at": "2025-05-21T07:36:00.071Z"
+    },
+    {
+      "id": "02321df4-2d9d-41f3-82fb-8b1056ba6416",
+      "title": "반드시 정보 출처를 표기해야해",
+      "file": "/Users/naron/Desktop/mcp-server/prompts/02321df4-2d9d-41f3-82fb-8b1056ba6416.txt",
+      "tags": [],
+      "created_at": "2025-05-21T07:49:26.572Z"
+    }
+  ],
+  "selectedPromptId": "02321df4-2d9d-41f3-82fb-8b1056ba6416"
+}

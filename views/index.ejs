@@ -1,0 +1,58 @@
+<%- include('partials/header') %>
+
+<div class="container">
+  <div class="row mb-4">
+    <div class="col">
+      <h1>프롬프트 관리 시스템</h1>
+      <p class="lead">AI 모델 프롬프팅을 위한 로컬 MCP 서버입니다.</p>
+      <a href="/prompts/new" class="btn btn-primary">새 프롬프트 작성</a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">프롬프트 목록</h4>
+            <div class="input-group" style="width: 300px;">
+              <input type="text" id="searchInput" class="form-control" placeholder="검색...">
+              <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <% if (prompts.length === 0) { %>
+            <div class="alert alert-info">
+              저장된 프롬프트가 없습니다. 새 프롬프트를 작성해보세요!
+            </div>
+          <% } else { %>
+            <div class="list-group">
+              <% prompts.forEach(function(prompt) { %>
+                <a href="/prompts/<%= prompt.id %>" class="list-group-item list-group-item-action">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1"><%= prompt.title %></h5>
+                    <small>
+                      <%= new Date(prompt.created_at).toLocaleString() %>
+                    </small>
+                  </div>
+                  <% if (prompt.tags && prompt.tags.length > 0) { %>
+                    <div class="mt-1">
+                      <% prompt.tags.forEach(function(tag) { %>
+                        <span class="badge bg-secondary me-1"><%= tag %></span>
+                      <% }); %>
+                    </div>
+                  <% } %>
+                </a>
+              <% }); %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

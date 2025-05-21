@@ -1,0 +1,51 @@
+/* 공통 스타일 */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+footer {
+  margin-top: auto;
+}
+
+/* 프롬프트 스타일링 */
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  border-radius: 0.25rem;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* 태그 스타일링 */
+.badge {
+  font-weight: 500;
+}
+
+/* 카드 스타일링 */
+.card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  margin-bottom: 1.5rem;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* 버튼 스타일링 */
+.btn-group {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+}
+
+/* 검색 상자 스타일링 */
+#searchInput {
+  transition: all 0.3s;
+}
+
+#searchInput:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
