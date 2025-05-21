@@ -11,6 +11,45 @@
   - ClaudeDesktop 앱이 종료될 때 MCP 서버(Express 3001번 포트)도 자동 종료
   - ClaudeDesktop에서 MCP 서버에 종료 신호 전송(REST API 등), 서버에서 해당 신호 수신 시 `webServer.close()` 호출
 
+---
+
+## 클로드 데스크탑 연동
+
+이 MCP 서버는 **클로드 데스크탑(ClaudeDesktop)**에서 자동 실행/종료 연동이 가능합니다.
+
+### config.json 예시
+
+`claude_desktop_config.json`에 아래와 같이 등록하세요:
+
+```json
+{
+  "my-mcp-server": {
+    "command": "node",
+    "args": ["/Users/{UserName}/Desktop/mcp-server/build/app.js"],
+    "env": {
+      "PORT": "원하는 포트 적으면 됩니다.",
+      "CLAUDE_API_KEY": "본인-API-키"
+    }
+  }
+}
+```
+
+- `command`: 실행 명령어 (node)
+- `args`: 빌드된 app.js의 절대경로
+- `env.PORT`: **웹포트**로, MCP 서버의 웹 UI가 이 포트를 점유합니다.
+- `env.CLAUDE_API_KEY`: 본인 Claude API 키
+
+> ⚠️ **포트 안내:**
+> - MCP 서버의 웹포트는 config(`"PORT"`)에서 지정한 값이 사용됩니다. 원하는 포트 번호로 자유롭게 지정할 수 있습니다.
+> - 해당 포트가 이미 사용 중이면 실행이 안 될 수 있습니다.
+> - 여러 MCP 서버를 동시에 등록할 경우, 포트가 겹치지 않게 각각 다르게 지정하세요.
+
+#### 예시: 포트를 4000으로 지정할 경우
+
+
+
+---
+
 ## 개요
 
 이 프로젝트는 Anthropic Claude API와 연동되는 MCP 서버 및 프롬프트 관리 웹 인터페이스를 제공합니다.  
@@ -19,26 +58,6 @@
 - **MCP 서버**: StdioServerTransport 기반으로 별도 포트 없이 동작, Express 웹서버(3001번 포트) 제공  
 - **포트 동기화**: ClaudeDesktop 앱과 3001번 포트 동기화(예정)  
 - **Node.js/TypeScript** 기반, ESM 호환
-
-## 설치 및 실행
-
-1. **의존성 설치**
-   ```bash
-   npm install
-   ```
-
-2. **환경 변수 설정**
-   - `.env` 파일에 아래와 같이 Claude API 키를 입력
-     ```
-     CLAUDE_API_KEY=sk-xxxxxxx
-     ```
-
-3. **서버 실행**
-   ```bash
-   npm run start
-   ```
-   - 웹 인터페이스: [http://localhost:3001](http://localhost:3001)
-   - MCP 서버: Stdio 기반(포트 불필요, MCP 클라이언트에서 직접 연결)
 
 ## 주요 기능
 
@@ -68,12 +87,6 @@
 - Node.js 버전 차이로 인한 호환성 문제 발생 시, `process.version` 로그로 실제 실행 환경 확인 권장
 - 프론트엔드(ClaudeDesktop)에서 응답 후처리 시 system 프롬프트가 100% 강제되지 않을 수 있음(서버에서 최대한 래핑)
 - MCP 툴 등록 시 description 파라미터 위치/방식에 주의(타입 에러 발생 가능)
-
-## 향후 개선/계획
-
-- 여러 프롬프트를 동시에 활성/비활성화(멀티 system 프롬프트 적용)
-- ClaudeDesktop 앱 종료와 3001번 포트 동기화
-- 프롬프트 그룹/태그별 관리, 프롬프트 버전 관리 등
 
 ---
 
